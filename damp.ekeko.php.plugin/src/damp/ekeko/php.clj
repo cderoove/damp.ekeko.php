@@ -4,7 +4,11 @@
   (:use clojure.core.logic)
   (:use [damp.ekeko logic])
   (:use [damp.ekeko])
-  (:use [damp.ekeko.php ast aststructure]))
+  (:use [damp.ekeko.php 
+         ast ;org.eclipse.php.internal.core.ast.nodes.ASTNode hierarchy
+         aststructure ;link between org.eclipse.php.internal.core.ast.nodes.ASTNode hierarchy and org.geclipse.dltk.core.IType hierarchy
+         astbindings ;link between org.eclipse.php.internal.core.ast.nodes.ASTNode hierarchy and org.eclipse.php.internal.core.ast.nodes.IBinding hierarchy
+         ]))
 
 
 (defn
@@ -33,7 +37,7 @@
   (ekeko* [?keyw ?ast] 
           (ast|expression ?keyw ?ast))
   
-  ;;all expressions and their inferred type
+  ;;all expressions (belonging to org.eclipse.php.internal.core.ast.nodes.ASTNode hierarchy) and their inferred type (belonging to org.geclipse.dltk.core.IType hierarchy)
   (ekeko* [?keyw ?exp  ?type]
            (ast|expression-type ?keyw ?exp ?type))
   
@@ -45,6 +49,17 @@
   (ekeko* [?expkey ?exp ?exptype ?typedec] 
           (ast|expression-type ?expkey ?exp ?exptype)
           (ast|typedeclaration-type ?typedec ?exptype))
+  
+ 	;function invocations with each of their parameters
+  (ekeko* [?fi ?p]
+          (fresh [?ps]
+                 (ast :FunctionInvocation ?fi)
+                 (has :parameters ?fi ?ps)
+                 (contains ?ps ?p)))
+    
+  ;function invocations and the function binding they resolve to (beloning org.eclipse.php.internal.core.ast.nodes.IBinding hierarchy)
+  (ekeko* [?fi ?fb]
+            (ast|functioninvocation-binding ?fi ?fb))
   
   
   

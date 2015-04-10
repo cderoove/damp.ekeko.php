@@ -2,6 +2,8 @@
   damp.ekeko.php.astnode
   (:require 
     [damp.util.interop]
+    [damp.ekeko.jdt
+     [astnode :as jdtastnode]] ;todo: extract commonalities to shared namespace
     [damp.ekeko.php
      [phpprojectmodel :as pm]])
   (:import 
@@ -53,6 +55,15 @@
   ast?
   [x]
   (instance? ASTNode x))
+
+
+(def value? jdtastnode/value?)
+(def value|list? jdtastnode/lstvalue?)
+(def value|null? jdtastnode/nilvalue?)
+(def value|primitive? jdtastnode/primitivevalue?)
+(def value-unwrapped jdtastnode/value-unwrapped)
+(def owner jdtastnode/owner)
+
 
 (defn
   ast-of-keyword?
@@ -120,91 +131,19 @@
        (damp.util.interop/get-invisible-field cls "PROPERTY_DESCRIPTORS_PHP5" nil))))
   
 
-(defn-
-  valuekind
-  [property]
-  (cond
-    (property-descriptor-list? property) 
-    :list
-    (property-descriptor-simple? property)
-    :primitive))
+(extend-protocol
+  jdtastnode/IHasOwner
+  ASTNode 
+  (owner [this] (.getParent ^ASTNode this))
+  (owner-property [this] (.getLocationInParent ^ASTNode this)))
 
-(defn
-  make-value
-  [owner property]
-  [(valuekind property) owner property])
-
-(defn
-  make-value|nil
-  [owner property] 
-  [:nil owner property])
-
-  
-(defn
-  value?
-  [x]
-  (vector? x))
+(extend-protocol
+  jdtastnode/IHasProperties
+  ASTNode
+  (property-value [n p] 
+    (node-property-value n p)))
 
 
-(defn-
-  valuekind?
-  [valuekeyword value]
-  (= valuekeyword (nth value 0))) 
-
-
-(defn
-  value-property
-  [x]
-  (nth x 2))
-
-(defn
-  value-owner
-  [x]
-  (nth x 1))
-
-
-(defn
-  lstvalue?
-  [x]
-  (and 
-    (value? x)
-    (valuekind? :list x)))
-
-(def 
-  value|list?
-  lstvalue?)
-
-(defn
-  nilvalue?
-  [x]
-  (and
-    (value? x)
-    (valuekind? :nil x)))
-
-(def
-  value|null?
-  nilvalue?)
-
-
-
-(defn
-  primitivevalue?
-  [x]
-  (and
-    (value? x)
-    (valuekind? :primitive x)))
-
-(def 
-  value|primitive?
-  primitivevalue?)
-  
-(defn
-  value-unwrapped
-  [value]
-  (if-let [[valuekind owner property] value]
-    (node-property-value owner property) ;;not the reified variant since we need the most primitive one
-    ))      
-              
 (def 
   node-ekeko-properties-for-class
   (memoize
@@ -214,16 +153,20 @@
                        (keyword (property-descriptor-id p)))
                      descriptors)
                 (map (fn [^StructuralPropertyDescriptor p]
-                       (if 
+                       (cond
                          (property-descriptor-child? p)
                          (fn [n]
                            (let [value (node-property-value n p)]
                              (if 
                                (ast? value)
                                value
-                               (make-value|nil n p))))
+                               (jdtastnode/make-value|nil n p))))
+                         (property-descriptor-list? p)
                          (fn [n]
-                           (make-value n p))))
+                           (jdtastnode/make-value|lst n p))
+                         :default
+                         (fn [n]
+                          (jdtastnode/make-value|primitive n p))))
                      descriptors)
                 )))))
 
@@ -232,29 +175,3 @@
   [node]
   (node-ekeko-properties-for-class (class node)))
 
-
-
-(defprotocol 
-  IHasOwner
-  (owner [n-or-wrapper]))
-          
-(extend-protocol
-  IHasOwner
-  ASTNode 
-  (owner [this] (.getParent ^ASTNode this))
-  ;PropertyValueWrapper ;TODO: switch to record as soon as core.logic no longer reifies records as maps
-  clojure.lang.PersistentVector
-  (owner [this] (value-owner this)))
-
-(defprotocol 
-  IValueOfProperty
-  ;PropertyValueWrapper ;TODO: switch to record as soon as core.logic no longer reifies records as maps  
-  (owner-property [n-or-wrapper]))
-
-(extend-protocol
-  IValueOfProperty
-  ASTNode 
-  (owner-property [this] (.getLocationInParent ^ASTNode this))
-  ;PropertyValueWrapper ;TODO: switch to record as soon as core.logic no longer reifies records as maps
-  clojure.lang.PersistentVector
-  (owner-property [this] (value-property this)))

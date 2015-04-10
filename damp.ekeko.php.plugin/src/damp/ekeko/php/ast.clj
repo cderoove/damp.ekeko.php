@@ -147,6 +147,7 @@
   [?ast]
   (cl/conde
     [(ast :ClassDeclaration ?ast)]
+     
     [(ast :TraitDeclaration ?ast)]
     [(ast :InterfaceDeclaration ?ast)]))
 
