@@ -8,6 +8,10 @@
          ast ;org.eclipse.php.internal.core.ast.nodes.ASTNode hierarchy
          aststructure ;link between org.eclipse.php.internal.core.ast.nodes.ASTNode hierarchy and org.geclipse.dltk.core.IType hierarchy
          astbindings ;link between org.eclipse.php.internal.core.ast.nodes.ASTNode hierarchy and org.eclipse.php.internal.core.ast.nodes.IBinding hierarchy
+         bindings
+         phpprojectmodel
+         astnode
+         structure
          ]))
 
 

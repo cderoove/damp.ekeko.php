@@ -1,6 +1,5 @@
 package damp.ekeko.php.plugin;
 
-import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.core.resources.IProject;
@@ -15,7 +14,6 @@ import org.eclipse.dltk.core.IModelElement;
 import org.eclipse.dltk.core.IScriptFolder;
 import org.eclipse.dltk.core.IScriptProject;
 import org.eclipse.dltk.core.ISourceModule;
-import org.eclipse.php.internal.core.PHPVersion;
 import org.eclipse.php.internal.core.ast.nodes.ASTNode;
 import org.eclipse.php.internal.core.ast.nodes.ASTParser;
 import org.eclipse.php.internal.core.ast.nodes.Program;
@@ -30,6 +28,9 @@ import damp.ekeko.ProjectModel;
 public class PHPProjectModel extends ProjectModel {
 
 	Multimap<java.lang.Class<? extends ASTNode>, ASTNode> type2nodes;
+	
+	
+	
 	
 	IScriptProject phpProject;
 

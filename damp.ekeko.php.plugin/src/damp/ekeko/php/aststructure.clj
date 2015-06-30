@@ -18,6 +18,18 @@
         (recur (rest models)))
       nil)))
 
+
+
+
+(defn 
+  declaration-for-element
+  [element]
+  (let [sourcemodule (program-for-sourcemodule (.getSourceModule element))
+        sourcerange (.getSourceRange element)
+        sourceoffset (.getOffset sourcerange)]
+    (.getElementAt sourcemodule sourceoffset)))
+    
+  
 (defn-
   element-declaration
   [?element ?ast]
@@ -27,6 +39,8 @@
     (cl/!= nil ?program)
     (el/equals ?offset (-> ?element .getSourceRange .getOffset))
     (el/equals-without-exception ?ast (.getElementAt ?program ?offset))))
+
+
 
 
 
@@ -49,4 +63,7 @@
             (cl/!= nil ?type)
             (element-declaration ?type ?ast)
             (cl/!= nil ?ast)]))
+
+
+
   

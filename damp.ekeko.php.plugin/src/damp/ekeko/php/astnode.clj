@@ -7,8 +7,25 @@
     [damp.ekeko.php
      [phpprojectmodel :as pm]])
   (:import 
+    [damp.ekeko.php.plugin PHPLabelProvider]
     [org.eclipse.php.internal.core.ast.nodes 
      ASTNode StructuralPropertyDescriptor ChildListPropertyDescriptor ChildPropertyDescriptor SimplePropertyDescriptor]))
+
+
+;; Disable XML representation of ASTNode on REPL to avoid stackoverflows
+
+  
+(defn
+  node-string|source
+  [node]
+  (PHPLabelProvider/asString node))
+
+(defmethod 
+  clojure.core/print-method 
+  ASTNode 
+  [node writer]
+  (.write writer (node-string|source node)))
+
 
 ;; Auxiliary functions
 
@@ -175,3 +192,102 @@
   [node]
   (node-ekeko-properties-for-class (class node)))
 
+
+(defn 
+  node-ekeko-prop2val 
+  [node]
+  (let [propmap (node-ekeko-properties node)]
+    (zipmap (keys propmap)
+            (for [[propkeyword propretrieving] propmap]
+              (propretrieving node)))))
+
+
+(defn
+  node-ekeko-values
+  [node]
+  (vals (node-ekeko-prop2val node)))
+
+
+(defn
+  node-ancestors
+  [^ASTNode n]
+  (loop [ancestors []
+         parent (.getParent n)]
+    (if 
+      parent
+      (recur (conj ancestors parent)
+             (.getParent parent))
+      ancestors)))
+ 
+
+(defn
+  value-ancestors
+  [v]
+  (loop [ancestors []
+         parent (owner v)]
+    (if 
+      parent
+      (recur (conj ancestors parent)
+             (owner parent))
+      ancestors)))
+
+
+(defn
+  nodeorvalue-offspring
+  [^ASTNode n]
+  (loop [offspring []
+         worklist [n]]
+    (if 
+      (empty? worklist)
+      offspring
+      (let [current 
+            (first worklist)
+            values  
+            (cond (ast? current) (node-ekeko-values current)
+                  (value|list? current) (value-unwrapped current)
+                  :default [])]
+        (recur (concat offspring values)
+               (concat (rest worklist) 
+                       (filter (fn [value]
+                                 (or (ast? value)
+                                     (value|list? value)))
+                               values)))))))                   
+        
+  
+(defn
+  nodeorvalue-offspring|type 
+  [node type]
+  (let [classtype (class-for-keyword type)]
+    (filter 
+      (fn [node]
+        (instance? classtype  node))
+      (nodeorvalue-offspring node))))
+
+(defn 
+  fieldaccesses 
+  [classes]
+  (loop [classes classes
+         fieldaccess {}]
+    (println (count classes))
+    (if 
+      (empty? classes)
+      fieldaccess
+      (let [class (first classes)
+            values (nodeorvalue-offspring|type class :FieldAccess)]
+        (recur (rest classes)
+               (assoc fieldaccess class values))))))
+
+(defn 
+  class-by-name 
+  [name]
+  (let [ classes (asts-for-keyword :ClassDeclaration)]
+    (loop [classes classes]
+      (if 
+        (empty? classes)
+        ()
+         (if (= (:name (node-ekeko-prop2val (first classes)))  name)
+            (first classes)
+            (recur (rest classes)))))))
+        
+  
+  

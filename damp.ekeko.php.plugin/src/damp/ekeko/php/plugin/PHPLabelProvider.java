@@ -8,7 +8,7 @@ import org.eclipse.swt.graphics.Image;
 @SuppressWarnings("restriction")
 public class PHPLabelProvider extends LabelProvider {
 
-	static String asString(ASTNode node) {
+	public static String asString(ASTNode node) {
 		return ASTRewriteFlattener.asString(node, null);
 	}
 
