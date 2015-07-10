@@ -73,6 +73,12 @@
   [x]
   (instance? ASTNode x))
 
+(defprotocol 
+  IAST
+  (reifiers [this] 
+    "Returns a map of keywords to reifier functions. The latter will return an Ekeko-specific child of the AST node."))
+
+
 
 (def value? jdtastnode/value?)
 (def value|list? jdtastnode/lstvalue?)
@@ -80,6 +86,7 @@
 (def value|primitive? jdtastnode/primitivevalue?)
 (def value-unwrapped jdtastnode/value-unwrapped)
 (def owner jdtastnode/owner)
+
 
 
 (defn
@@ -138,6 +145,9 @@
 
 (defn node-property-value [^ASTNode n ^StructuralPropertyDescriptor p]
   (.getStructuralProperty n p))
+
+
+
 
 (defn 
   nodeclass-property-descriptors 
@@ -199,7 +209,11 @@
   (let [propmap (node-ekeko-properties node)]
     (zipmap (keys propmap)
             (for [[propkeyword propretrieving] propmap]
-              (propretrieving node)))))
+              (let [val (propretrieving node)]
+                (if
+                  (ast? val)
+                  val
+                  (value-unwrapped val)))))))
 
 
 (defn
@@ -220,6 +234,17 @@
       ancestors)))
  
 
+
+(defn
+  node-ancestors|type 
+  [node type]
+  (let [classtype (class-for-keyword type)]
+    (filter 
+      (fn [n]
+        (instance? classtype  n))
+      (node-ancestors node))))
+
+
 (defn
   value-ancestors
   [v]
@@ -232,6 +257,20 @@
       ancestors)))
 
 
+  (extend 
+  ASTNode
+  IAST
+  {:reifiers (fn [this] 
+               (node-ekeko-properties-for-class (class this)))})
+                                                  
+                            
+(defn 
+  node-propertyvalues
+  [n]
+  (map 
+    (fn [retrievalf] (retrievalf n))
+    (vals (reifiers n))))
+
 (defn
   nodeorvalue-offspring
   [^ASTNode n]
@@ -243,24 +282,26 @@
       (let [current 
             (first worklist)
             values  
-            (cond (ast? current) (node-ekeko-values current)
+            (cond (ast? current) (node-propertyvalues current)
                   (value|list? current) (value-unwrapped current)
                   :default [])]
-        (recur (concat offspring values)
-               (concat (rest worklist) 
-                       (filter (fn [value]
-                                 (or (ast? value)
-                                     (value|list? value)))
-                               values)))))))                   
-        
-  
+        (recur (into offspring values)
+               (into (rest worklist) 
+                     (filter (fn [value]
+                               (or (ast? value)
+                                   (value|list? value)))
+                             values)))))))                   
+    
+      
+
+
 (defn
   nodeorvalue-offspring|type 
   [node type]
   (let [classtype (class-for-keyword type)]
     (filter 
-      (fn [node]
-        (instance? classtype  node))
+      (fn [n]
+        (instance? classtype  n))
       (nodeorvalue-offspring node))))
 
 (defn 
@@ -268,7 +309,6 @@
   [classes]
   (loop [classes classes
          fieldaccess {}]
-    (println (count classes))
     (if 
       (empty? classes)
       fieldaccess
@@ -277,17 +317,22 @@
         (recur (rest classes)
                (assoc fieldaccess class values))))))
 
+(defn
+  node-propkey-value
+  [node propkey]
+  
+  )
+
+
 (defn 
-  class-by-name 
+  class-by-name
   [name]
-  (let [ classes (asts-for-keyword :ClassDeclaration)]
-    (loop [classes classes]
-      (if 
-        (empty? classes)
-        ()
-         (if (= (:name (node-ekeko-prop2val (first classes)))  name)
-            (first classes)
-            (recur (rest classes)))))))
-        
-  
-  
+  (let [classes (asts-for-keyword :ClassDeclaration)]
+    (filterv
+      (fn [class]
+          (= name (:name (node-ekeko-prop2val (:name (node-ekeko-prop2val class))))))
+      classes)))
+
+
+
+

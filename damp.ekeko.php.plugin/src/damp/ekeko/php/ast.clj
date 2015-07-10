@@ -244,9 +244,8 @@
     (ast :Program ?ast)))
 
 
-;; is the ast node an classDeclaration
 (defn 
   ast|classDeclaration 
   [?ast]
-  (cl/a;;
+  (cl/all
     (ast :ClassDeclaration ?ast)))
