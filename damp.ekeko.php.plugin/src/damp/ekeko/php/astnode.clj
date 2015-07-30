@@ -3,7 +3,7 @@
   (:require 
     [damp.util.interop]
     [damp.ekeko.jdt
-     [astnode :as jdtastnode]] ;todo: extract commonalities to shared namespace
+    [astnode :as jdtastnode]] 
     [damp.ekeko.php
      [phpprojectmodel :as pm]])
   (:import 
@@ -244,6 +244,22 @@
         (instance? classtype  n))
       (node-ancestors node))))
 
+(defn 
+  node-firstancestor|type
+  [node type]
+  (let [classtype (class-for-keyword type)]
+      (loop [ancestors []
+             parent (.getParent node)]
+        (if 
+          (instance? classtype parent)
+          parent
+          (if 
+            parent
+            (recur (conj ancestors parent)
+                   (.getParent parent))
+            ancestors)))))
+    
+
 
 (defn
   value-ancestors
@@ -324,6 +340,7 @@
   )
 
 
+
 (defn 
   class-by-name
   [name]
@@ -333,6 +350,37 @@
           (= name (:name (node-ekeko-prop2val (:name (node-ekeko-prop2val class))))))
       classes)))
 
+(defn 
+  method-by-name
+  [name]
+    (let [methods (asts-for-keyword :MethodDeclaration)]
+    (filterv
+      (fn [method]
+          (= name (:name (node-ekeko-prop2val (:name (node-ekeko-prop2val (:function (node-ekeko-prop2val method))))))))
+      methods)))
+
+(defn 
+  fieldaccessesmethods
+  [class]
+  (reduce (fn [mapsofar method] 
+            (assoc mapsofar method (nodeorvalue-offspring|type method :FieldAccess)))
+        {} 
+        (nodeorvalue-offspring|type class :MethodDeclaration)))
 
 
+(defn 
+  classdeclarations
+  []
+  (asts-for-keyword :ClassDeclaration))
+
+(defn 
+  methoddeclarations
+  []
+  (asts-for-keyword :MethodDeclaration))
+
+
+(defn
+  modifier
+  [astnode]
+  (value-unwrapped((:modifier (node-ekeko-properties astnode)) astnode)))
 

@@ -1,17 +1,15 @@
 (ns damp.ekeko.php.accestoforeigndata
  (:require 
-    [damp.util.interop]
     [damp.ekeko.php
-     [astnode :as astnode]] ;todo: extract commonalities to shared namespace
+     [astnode :as astnode]]
     [damp.ekeko.php
-     [phpprojectmodel :as pm]]
+     [metrics :as metrics]]
     [damp.ekeko.php
      [aststructure :as aststruct]]
     [damp.ekeko.php
-     [astbindings :as astbindings]])
-  (:import 
-    [org.eclipse.php.internal.core.ast.nodes 
-     ASTNode StructuralPropertyDescriptor ChildListPropertyDescriptor ChildPropertyDescriptor SimplePropertyDescriptor]))
+     [astbindings :as astbindings]]
+    [damp.ekeko.php
+     [bindings :as bindings]]))
 
 
 (defn 
@@ -23,12 +21,10 @@
     (if (empty? fieldsaccessed)
       (count ATFD)
       (let [fieldaccessed (first fieldsaccessed)
-            decnode (if-let [fieldbinding (.resolveFieldBinding fieldaccessed)]
-                      (if-let [declaringbinding (.getDeclaringClass fieldbinding)]
-                        (if-let [typedecelement (.getPHPElement declaringbinding)]
-                           (if-let [decnode (aststruct/declaration-for-element typedecelement)]
-                            decnode
-                            nil))))]
+            decnode (metrics/declaringnode fieldaccessed)]
+        (pr 1)
+        (pr "class" class)
+        (pr "decnode" decnode)
          (if (or (= decnode class) (nil? decnode))
            (recur (rest fieldsaccessed)
                  ATFD)
@@ -44,7 +40,7 @@
   []  
   (reduce (fn [mapsofar class] (assoc mapsofar class (accesstoforeigndataclass class)))
              {} 
-             (astnode/asts-for-keyword :ClassDeclaration)))
+             (astnode/classdeclarations)))
                  
                       
                               

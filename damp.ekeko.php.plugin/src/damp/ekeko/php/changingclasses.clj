@@ -3,10 +3,17 @@
     [damp.util.interop]
      [damp.ekeko.php
      [astnode :as astnode]]
+      [damp.ekeko.php
+     [metrics :as metrics]]
+     [damp.ekeko.php
+     [astbindings :as astbinding]]
+      [damp.ekeko.php
+     [bindings :as bindings]]
     [damp.ekeko.php
      [aststructure :as aststruct]] ))
 
 (def not-nil? (complement nil?))
+
 
 (defn 
   changingclassesmethod
@@ -15,21 +22,12 @@
        (loop [methodinvocations methodinvocations
                                CC []]
                            (if (empty? methodinvocations)
-                             (count CC)
+                             (count (distinct CC))
                              (let [methodinvocation (first methodinvocations)
-                                    node (if-let [methodbinding (.resolveMethodBinding methodinvocation)]
-                                             (if-let [typelement (.getPHPElement methodbinding)]
-                                                (if-let [node (aststruct/declaration-for-element typelement)]
-                                                 node
-                                                 nil)))]
+                                    node (metrics/methodinvocating methodinvocation)]
                                (if (= node method)
-                                 (let [invocatingmethod (astnode/nodeo-ancestors|type methodinvocation :MethodDeclaration)
-                                       decnode (if-let [invocmethodbinding (.resolveMethodBinding invocatingmethod)]
-                                                 (if-let [declaringbinding (.getDeclaringClass invocmethodbinding)]
-                                                   (if-let [typedecelement (.getPHPElement declaringbinding)]
-                                                      (if-let [decnode (aststruct/declaration-for-element typedecelement)]
-                                                       decnode
-                                                       nil))))]
+                                 (let [invocatingmethod (astnode/node-firstancestor|type methodinvocation :MethodDeclaration)
+                                       decnode (metrics/declaringnode methodinvocation)]
                                   (if (not-nil? decnode)
                                   (recur (rest methodinvocations)
                                          (conj CC decnode))
@@ -43,4 +41,4 @@
   []
   (reduce (fn [mapsofar method] (assoc mapsofar method (changingclassesmethod method)))
              {} 
-             (astnode/asts-for-keyword :MethodDeclaration)))
+             (astnode/methoddeclarations)))

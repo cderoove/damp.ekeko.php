@@ -1,6 +1,5 @@
 (ns damp.ekeko.php.averagemethodweight
    (:require 
-    [damp.util.interop]
      [damp.ekeko.php
      [astnode :as astnode]]
     [damp.ekeko.php
@@ -18,5 +17,5 @@
   []
   (reduce (fn [mapsofar class] (assoc mapsofar class (averagemethodweightclass class)))
              {} 
-             (astnode/asts-for-keyword :ClassDeclaration)))
+             (astnode/classdeclarations)))
 
