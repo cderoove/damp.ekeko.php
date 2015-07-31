@@ -1,10 +1,10 @@
 (ns damp.ekeko.php.godclass
      (:require 
      [damp.ekeko.php
-     [accesstoforeigndata :as ATFD]] 
+     [accestoforeigndata :as ATFD]] 
      [damp.ekeko.php
      [weightedmethodcount :as WMC]]
-     damp.ekeko.php
+     [damp.ekeko.php
      [tightclasscohesion :as TCC]]
      [damp.ekeko.php
      [thresholds :as thresholds]]

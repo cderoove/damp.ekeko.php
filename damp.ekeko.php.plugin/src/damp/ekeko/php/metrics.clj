@@ -6,7 +6,9 @@
      [damp.ekeko.php
      [astbindings :as astbindings]]
      [damp.ekeko.php
-     [aststructure :as aststruct]]))
+     [aststructure :as aststruct]]
+     [damp.ekeko.php
+     [astnode :as astnode]]))
 
 
   (defn 
@@ -34,3 +36,33 @@
  (defn mapintersection
    [map1 map2]
    (clojure.set/intersection (set map1) (set map2)))
+ 
+ 
+
+(defn
+  methodinvocation2callerandcallee
+  []
+  (let [methodinvocations (astnode/asts-for-keyword :MethodInvocation)]
+       (loop [methodinvocations methodinvocations
+                               methodinvocation2callee {}
+                               methodinvocation2caller {}
+                                methodinvocation2decnode{}
+                                callee2caller {}
+                                callee2decnode {}]
+                           (if (empty? methodinvocations)
+                            {:callee2decnode callee2decnode, :callee2caller callee2caller :methodinvocation2callee methodinvocation2callee, :methodinvocation2caller methodinvocation2caller, :methodinvocation2class methodinvocation2decnode}
+                             (let [methodinvocation (first methodinvocations)
+                                    callee (methodinvocating methodinvocation)
+                                    caller (astnode/node-firstancestor|type methodinvocation :MethodDeclaration)
+                                     decnode (declaringnode methodinvocation)]
+                               (recur (rest methodinvocations)
+                                      (assoc methodinvocation2callee methodinvocation callee)
+                                      (assoc methodinvocation2caller methodinvocation caller)
+                                      (assoc methodinvocation2decnode methodinvocation decnode)
+                                      (merge-with concat callee2caller { callee [caller]})
+                                      (merge-with concat callee2decnode { callee [decnode ]})))))))
+                                
+ 
+
+
+

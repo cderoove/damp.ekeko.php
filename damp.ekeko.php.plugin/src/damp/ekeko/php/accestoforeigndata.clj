@@ -22,9 +22,6 @@
       (count ATFD)
       (let [fieldaccessed (first fieldsaccessed)
             decnode (metrics/declaringnode fieldaccessed)]
-        (pr 1)
-        (pr "class" class)
-        (pr "decnode" decnode)
          (if (or (= decnode class) (nil? decnode))
            (recur (rest fieldsaccessed)
                  ATFD)

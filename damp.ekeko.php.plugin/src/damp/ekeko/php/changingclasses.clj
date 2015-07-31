@@ -12,33 +12,18 @@
     [damp.ekeko.php
      [aststructure :as aststruct]] ))
 
-(def not-nil? (complement nil?))
-
-
-(defn 
+(defn
   changingclassesmethod
-  [method]
-  (let [methodinvocations (astnode/asts-for-keyword :MethodInvocation)]
-       (loop [methodinvocations methodinvocations
-                               CC []]
-                           (if (empty? methodinvocations)
-                             (count (distinct CC))
-                             (let [methodinvocation (first methodinvocations)
-                                    node (metrics/methodinvocating methodinvocation)]
-                               (if (= node method)
-                                 (let [invocatingmethod (astnode/node-firstancestor|type methodinvocation :MethodDeclaration)
-                                       decnode (metrics/declaringnode methodinvocation)]
-                                  (if (not-nil? decnode)
-                                  (recur (rest methodinvocations)
-                                         (conj CC decnode))
-                                  (recur (rest methodinvocations)
-                                         CC)))
-                                 (recur (rest methodinvocations)
-                                         CC)))))))
+  [method methodinvocation2callerandcallee]
+  (let [callee2decnode (:callee2decnode methodinvocation2callerandcallee)]
+    (count (distinct (get callee2decnode method)))))
+  
 
+                        
 (defn 
   changingclasses
   []
-  (reduce (fn [mapsofar method] (assoc mapsofar method (changingclassesmethod method)))
+  (def methodinvocation2callerandcallee (metrics/methodinvocation2callerandcallee))
+  (reduce (fn [mapsofar method] (assoc mapsofar method (changingclassesmethod method  methodinvocation2callerandcallee)))
              {} 
              (astnode/methoddeclarations)))

@@ -10,13 +10,14 @@
     [damp.ekeko.php
      [astbindings :as astbindings]])
   (:import
-    [org.eclipse.php.internal.core.ast.nodes.BodyDeclaration Modifiers]
+    [org.eclipse.dltk.ast Modifiers] 
+    [org.eclipse.php.internal.core.ast.nodes BodyDeclaration$Modifier]
     [org.eclipse.php.internal.core.ast.nodes 
      BodyDeclaration ASTNode StructuralPropertyDescriptor ChildListPropertyDescriptor ChildPropertyDescriptor SimplePropertyDescriptor]))
 
-
-(defn
-  numberofprotecedmembersclass
+    
+ (defn 
+   numberofprotectedmethods
   [class]
   (let [ methods (astnode/nodeorvalue-offspring|type class :MethodDeclaration)]
   (loop [ methods methods
@@ -25,12 +26,31 @@
       (count NProtM)
       (let [method (first methods)
             modifier (astnode/modifier method)]
-       (if (Modifiers/isPrivate modifier)
+       (if (= (Modifiers/AccProtected) modifier)
           (recur (rest methods)
                 (conj NProtM method))
           (recur (rest methods)
                  NProtM)))))))
+ 
+ 
 
-
-
-
+(defn
+  numberofprotectedfields
+  [class]
+  (let [fields (astnode/nodeorvalue-offspring|type class :FieldsDeclaration)]
+  (loop [fields fields
+         NprotF []]
+    (if (empty? fields)
+      (count NprotF)
+      (let [field (first fields)
+            modifier (astnode/modifier field)]
+       (if (= (Modifiers/AccProtected) modifier)
+          (recur (rest fields)
+                (conj NprotF fields))
+          (recur (rest fields)
+                 NprotF)))))))
+ 
+ (defn
+ numberofprotecedmembersclass
+ [class]
+ ( + (numberofprotectedfields class) (numberofprotectedmethods class)))

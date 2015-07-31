@@ -6,6 +6,8 @@
      [changingclasses :as CC]]
      [damp.ekeko.php
      [thresholds :as thresholds]]
+     [damp.ekeko.php
+     [metrics :as metrics]]
      [clojure.set]))
 
 (defn
@@ -27,7 +29,7 @@
 (defn 
   shotgunsurgery
   []
-  (clojure.set/intersection (filteredchangingclasses) (filteredchangingmethods)))
+  (metrics/mapintersection (filteredchangingclasses) (filteredchangingmethods)))
 
 
    
