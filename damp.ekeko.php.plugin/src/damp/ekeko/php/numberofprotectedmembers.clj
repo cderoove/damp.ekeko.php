@@ -54,3 +54,10 @@
  numberofprotecedmembersclass
  [class]
  ( + (numberofprotectedfields class) (numberofprotectedmethods class)))
+ 
+ 
+ (defn numberofprotectedmembers
+  []  
+  (reduce (fn [mapsofar class] (assoc mapsofar class (numberofprotecedmembersclass class)))
+             {} 
+             (astnode/classdeclarations)))

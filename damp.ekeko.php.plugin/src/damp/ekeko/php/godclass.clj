@@ -15,7 +15,7 @@
 (defn
  filteredATFD
   []
-  (filterv
+  (filter
     (fn [keyvaluepair]
       (> (val keyvaluepair) (:few thresholds/thresholds)))
     (ATFD/accesstoforeigndata)))
@@ -23,7 +23,7 @@
 (defn
   filteredWMC
   []
-   (filterv
+   (filter
     (fn [keyvaluepair]
       (>= (val keyvaluepair) (:veryhigh thresholds/thresholds)))
     (WMC/weightedmethodcount)))
@@ -31,12 +31,26 @@
 (defn
   filteredTCC
    []
-   (filterv
+   (filter
     (fn [keyvaluepair]
-      (< (val keyvaluepair) (:onethird thresholds/thresholds)))
+     (and (< (val keyvaluepair) (:onethird thresholds/thresholds))  (>(val keyvaluepair) 0)))
     (TCC/tightclasscohesion)))
 
+
+
+(defn lazyseqkeys
+  [lazyseq]  
+  (loop [lazyseq lazyseq
+         keys ()]
+    (if (empty? lazyseq)
+      keys
+     (recur (rest lazyseq)
+           (cons (first (first lazyseq)) keys)))))
+                 
+                      
 (defn 
  godclass
  []
- (metrics/mapintersection (filteredTCC) (filteredWMC) (filteredATFD)))
+ (clojure.set/intersection (set (lazyseqkeys (filteredATFD))) (set (lazyseqkeys (filteredWMC))) (set (lazyseqkeys (filteredTCC))))) 
+
+

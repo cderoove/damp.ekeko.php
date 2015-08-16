@@ -15,3 +15,11 @@ CYCLO
       numberofdecisions (+' numberoffifstatements numberofswitchCases numberofforeachtstatements numberofforstatements numberofcatchclauses numberofwhilestatements)
       CYCLO (+' numberofdecisions 1)]
   CYCLO))
+
+                        
+(defn 
+  CYCLOALL
+  []
+  (reduce (fn [mapsofar method] (assoc mapsofar method (CYCLO method)))
+             {} 
+             (astnode/methoddeclarations)))

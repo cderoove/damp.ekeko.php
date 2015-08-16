@@ -333,11 +333,6 @@
         (recur (rest classes)
                (assoc fieldaccess class values))))))
 
-(defn
-  node-propkey-value
-  [node propkey]
-  
-  )
 
 
 

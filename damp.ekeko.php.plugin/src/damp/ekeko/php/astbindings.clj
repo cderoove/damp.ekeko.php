@@ -47,8 +47,10 @@
 (defn
   ast|fieldaccess-binding
   [ast]
- (.resolveFieldBinding ast))
-
+(try
+   (.resolveFieldBinding ast)
+   (catch NullPointerException e
+       nil )))
 
 (defn
   ast|methoddeclaration-binding
@@ -68,7 +70,9 @@
   (reduce
     (fn [newmapsofar [method fieldaccesslist]]
       (assoc newmapsofar method (map (fn [access] 
-                                       (.resolveFieldBinding access))
+                                       (try 
+                                         (.resolveFieldBinding access)
+                                         (catch Exception e nil)))
                                      fieldaccesslist)))
     {}
     method2fieldacceslist))

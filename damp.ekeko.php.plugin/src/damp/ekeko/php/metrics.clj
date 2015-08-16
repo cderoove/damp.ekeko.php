@@ -14,13 +14,14 @@
   (defn 
     declaringnode
     [ast]
-    (if-let [binding (astbindings/ast|correctbinding ast)]
-                        (if-let [declaringbinding (bindings/binding|declaringclass binding)]
-                          (if-let [typedecelement (bindings/binding|element declaringbinding)]
-                             (if-let [decnode (aststruct/declaration-for-element typedecelement)]
-                              decnode
-                              nil)))))
-
+    (when ast
+      (if-let [binding (astbindings/ast|correctbinding ast)]
+        (if-let [declaringbinding (bindings/binding|declaringclass binding)]
+          (if-let [typedecelement (bindings/binding|element declaringbinding)]
+            (if-let [decnode (aststruct/declaration-for-element typedecelement)]
+              decnode
+              nil))))))
+    
 
  (defn
    methodinvocating
@@ -37,7 +38,12 @@
    [map1 map2]
    (clojure.set/intersection (set map1) (set map2)))
  
+  
+ (defn mapintersection2
+   [map1 map2 map3]
+   (clojure.set/intersection (set (key map1)) (set (key map2)) (key (set map3))))
  
+
 
 (defn
   methodinvocation2callerandcallee
@@ -63,6 +69,3 @@
                                       (merge-with concat callee2decnode { callee [decnode ]})))))))
                                 
  
-
-
-

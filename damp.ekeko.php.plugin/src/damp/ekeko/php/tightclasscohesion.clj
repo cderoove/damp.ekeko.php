@@ -31,8 +31,6 @@
              (count MI)
              (let [methodinvocation (first methodinvocations)
                     decnode (metrics/declaringnode methodinvocation)]
-               (pr "decnode " decnode)
-               (pr "class" class)
                  (if (= decnode class)
                    (recur (rest methodinvocations)
                           (conj MI methodinvocation))

@@ -10,7 +10,10 @@
 (defn
   averagemethodweightclass
   [class]
-  (float (/ (WMC/weightedmethodcountclass class) (NOM/numberofmethodsclass class))))
+  (float (/ (WMC/weightedmethodcountclass class) (if (> (NOM/numberofmethodsclass class) 0)
+                                                    (NOM/numberofmethodsclass class)
+                                                    1
+                                                   ))))
 
 (defn 
   averagemethodweight

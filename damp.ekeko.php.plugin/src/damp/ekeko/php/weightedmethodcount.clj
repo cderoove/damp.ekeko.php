@@ -19,4 +19,9 @@
              {} 
              (astnode/classdeclarations)))
                  
+(defn weightedmethodcountname
+  []  
+  (reduce (fn [mapsofar class] (assoc mapsofar class (.getBinaryName (.resolveTypeBinding class))))
+             {} 
+             (astnode/classdeclarations)))
                       
