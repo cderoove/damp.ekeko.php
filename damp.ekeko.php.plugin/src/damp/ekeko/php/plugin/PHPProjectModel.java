@@ -55,7 +55,8 @@ public class PHPProjectModel extends ProjectModel {
 		for(IScriptFolder scriptFolder : phpProject.getScriptFolders()) {
 			for (ISourceModule sourceModule : scriptFolder.getSourceModules()) {
 				Program program = parseSourceModule(sourceModule);
-				gatherNodes(program);
+				if(program != null)
+					gatherNodes(program);
 			}
 		}
 	}
